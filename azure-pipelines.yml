@@ -5,15 +5,64 @@
 
 trigger:
 - main
+variables:
+  # Agent VM pool
+  agentPool: 'Azure Pipelines'
+  # Node.js version
+  nodeVersion: '18.x'
 
-pool:
-  vmImage: ubuntu-latest
+stages:
+# ==================== Build Stage ====================
+- stage: Build
+  displayName: 'Build Stage'
+  jobs:
+    - job: BuildJob
+      displayName: 'Build and package'
+      pool:
+        name: $(agentPool)
+      steps:
+        - script: echo Hello, world!
+          displayName: 'Run a one-line script'
 
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+        - script: |
+            echo Add other tasks to build, test, and package your project.
+            echo See https://aka.ms/yaml
+          displayName: 'Run a multi-line script'
+        
+        - task: ArchiveFiles@2
+          inputs:
+            rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+            includeRootFolder: false
+            archiveType: 'zip'
+            archiveFile: '$(Build.ArtifactStagingDirectory)/app.zip'
+            replaceExistingArchive: true
+          displayName: 'Archive Build Output'
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+        - task: PublishBuildArtifacts@1
+          inputs:
+            PathtoPublish: '$(Build.ArtifactStagingDirectory)/app.zip'
+            ArtifactName: 'drop'
+          displayName: 'Publish Artifact'
+
+# ==================== Deploy Stage ====================
+- stage: Deploy
+  displayName: 'Deploy Stage'
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+    - job: DeployJob
+      displayName: 'Deploy to Azure App Service'
+      pool:
+        name: $(agentPool)
+      steps:
+        - download: current
+          artifact: drop
+
+        - task: AzureWebApp@1
+          displayName: 'Deploy to Azure App Service'
+          environment: 'production'
+          inputs:
+            azureSubscription: 'ARM-Cosigwe'  
+            appName: 'myWebAppcosigwe'               
+            package: '$(Pipeline.Workspace)/drop/app.zip'
+

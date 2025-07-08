@@ -52,6 +52,7 @@ stages:
   jobs:
     - job: DeployJob
       displayName: 'Deploy to Azure App Service'
+      environment: 'production'
       pool:
         name: $(agentPool)
       steps:
@@ -60,7 +61,7 @@ stages:
 
         - task: AzureWebApp@1
           displayName: 'Deploy to Azure App Service'
-          environment: 'production'
+          
           inputs:
             azureSubscription: 'ARM-Cosigwe'  
             appName: 'myWebAppcosigwe'               

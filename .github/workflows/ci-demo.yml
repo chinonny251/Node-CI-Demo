@@ -35,4 +35,5 @@ jobs:
         with:
           app-name: gitHub-appService  # ensure this matches your Azure app name
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: .
+          package: app.zip
+          enable-oidc: false
